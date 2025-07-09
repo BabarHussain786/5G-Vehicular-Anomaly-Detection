@@ -1,4 +1,4 @@
-# Anomaly Detection in 5G-Enabled Vehicular Networks
+# Anomaly Detection Vehicular Networks
 
 This repository contains a multi-phase project focused on developing and testing machine learning models for anomaly detection in simulated vehicular networks. The project progresses from detecting physical traffic incidents in SUMO to predictive detection with LSTMs and a proof-of-concept for monitoring live network performance.
 
