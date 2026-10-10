@@ -1,97 +1,76 @@
-# Anomaly Detection Vehicular Networks
+# Anomaly Detection in Vehicular Networks
 
-This repository contains a multi-phase project focused on developing and testing machine learning models for anomaly detection in simulated vehicular networks. The project progresses from detecting physical traffic incidents in SUMO to predictive detection with LSTMs and a proof-of-concept for monitoring live network performance.
+This repository evaluates machine-learning workflows for anomaly detection in simulated vehicular traffic and communication-network measurements. The experiments progress from traffic-event detection to temporal prediction and network KPI monitoring.
 
-## Project Overview
+## Project workflow
 
-The project is divided into three main phases, each building upon the last:
+### Phase 1 — Traffic-event detection
 
-1.  **Phase 1: Traffic Anomaly Detection (Isolation Forest)**
-    * A SUMO traffic simulation is run for an extended period (24 hours or 7 days).
-    * A physical anomaly (a lane closure) is programmatically injected to create a traffic jam.
-    * An `IsolationForest` model from scikit-learn is used to analyze the resulting speed data and detect the incident.
+SUMO generates traffic traces, including an injected lane-closure event. An Isolation Forest analyzes vehicle-speed features to identify observations that differ from the normal traffic distribution.
 
-2.  **Phase 2: Predictive Traffic Anomaly Detection (LSTM)**
-    * A Long Short-Term Memory (LSTM) neural network is trained on a clean, 24-hour dataset of *normal* traffic.
-    * The trained model is then used in a new simulation to *predict* the traffic speed at each step.
-    * Anomalies are detected in real-time when the *actual* speed significantly deviates from the *predicted* speed.
+### Phase 2 — Predictive traffic monitoring
 
-3.  **Phase 3: Communication Network Anomaly Detection**
-    * This phase demonstrates that the same principles can be applied to the communication network itself.
-    * It includes a script to monitor the **live latency** of a real network connection by pinging a server.
-    * It also includes a script that generates **synthetic 5G KPI data** (latency and packet loss) with a simulated DDoS attack, which is then detected using the Isolation Forest model.
+An LSTM is trained on normal traffic sequences. During a new simulation, the predicted speed is compared with the observed speed; a sufficiently large residual is reported as a potential anomaly.
 
-## Technologies Used
+### Phase 3 — Communication-network monitoring
 
-* **Simulation:** SUMO (Simulation of Urban MObility)
-* **Simulation Control:** Python, TraCI
-* **Data Handling:** Pandas, NumPy
-* **Machine Learning:** Scikit-learn (`IsolationForest`)
-* **Deep Learning:** TensorFlow, Keras (`LSTM`)
-* **Visualization:** Matplotlib, Seaborn, Plotly
-* **Live Network Monitoring:** `ping3`
+The repository also includes:
 
-## Installation & Setup
+- a live-latency monitor for a network connection;
+- synthetic 5G KPI generation using latency and packet-loss features;
+- Isolation Forest detection of injected communication anomalies.
 
-1.  **Clone the repository:**
-    ```bash
-    git clone [https://github.com/BabarHussain786/5G-Vehicular-Anomaly-Detection.git](https://github.com/BabarHussain786/5G-Vehicular-Anomaly-Detection.git)
-    cd 5G-Vehicular-Anomaly-Detection
-    ```
+## Technologies
 
-2.  **Ensure SUMO is installed** and its tools directory is accessible in your system's PATH.
+- SUMO and TraCI for traffic simulation and control
+- Python, Pandas, and NumPy for data processing
+- scikit-learn Isolation Forest for unsupervised detection
+- TensorFlow/Keras LSTM models for temporal prediction
+- Matplotlib, Seaborn, and Plotly for visualization
+- `ping3` for latency measurement
 
-3.  **Install the required Python libraries:**
-    ```bash
-    pip install pandas numpy scikit-learn tensorflow matplotlib seaborn plotly ping3
-    ```
+## Installation
 
-## How to Run the Experiments
+```bash
+git clone https://github.com/BabarHussain786/5G-Vehicular-Anomaly-Detection.git
+cd 5G-Vehicular-Anomaly-Detection
+pip install pandas numpy scikit-learn tensorflow matplotlib seaborn plotly ping3
+```
 
-All Python scripts should be run from the main repository directory. Ensure your SUMO files (`map.net.xml`, `map.sumocfg`, etc.) are in a `sumo_files/` subdirectory.
+Install SUMO separately and ensure its tools directory is available through `PATH` or the environment expected by the scripts.
 
-### Experiment 1: Predictive Anomaly Detection (LSTM)
+## Running the experiments
 
-This is the most advanced experiment. It trains a model and then runs a live detection simulation.
+Run scripts from the repository root. SUMO experiments require the network and configuration files under the documented `sumo_files/` directory.
 
-1.  **Generate a route file** for the simulation inside the `sumo_files/` directory:
-    ```bash
-    python /path/to/sumo/tools/randomTrips.py -n sumo_files/map.net.xml -r sumo_files/map.rou.xml -e 86400 -p 4
-    ```
+### Predictive traffic anomaly detection
 
-2.  **Run the main script:**
-    ```bash
-    python scripts/predictive_detector_final.py
-    ```
-    This will generate a `predictive_detection_results.csv` file.
+Generate routes with SUMO's `randomTrips.py` (adjust the network and simulation horizon to the experiment):
 
-3.  **Visualize the results:**
-    ```bash
-    python scripts/visualize_results.py
-    ```
-    This will generate a `predictive_model_report.png` file.
+```bash
+python /path/to/sumo/tools/randomTrips.py -n sumo_files/map.net.xml -r sumo_files/map.rou.xml -e 86400 -p 4
+python scripts/predictive_detector_final.py
+python scripts/visualize_results.py
+```
 
-### Experiment 2: Live Network Latency Monitor
+The detector writes the measured predictions and anomaly decisions to a CSV file; the visualization script produces the corresponding report image.
 
-This script monitors your computer's current internet connection.
+### Live latency monitoring
 
-* **Run the script** (you may need administrator privileges):
-    ```bash
-    sudo python scripts/live_latency_detector.py
-    ```
-    Press `Ctrl+C` to stop the monitor.
+```bash
+python scripts/live_latency_detector.py
+```
 
-## Results
+Stop the monitor with `Ctrl+C`. Administrative privileges may be required by the host environment.
 
-The project successfully demonstrates that machine learning models can be used to effectively detect anomalies in both simulated traffic and communication network data.
+## Interpretation
 
-* The **Isolation Forest** model proved effective at identifying significant outliers in large datasets but was sensitive to minor, normal fluctuations.
-* The **predictive LSTM model** was more robust, as it learned the *temporal patterns* of normal traffic and was better able to distinguish between minor fluctuations and major incidents.
+The repository demonstrates an experimental workflow for detecting injected or simulated anomalies. Isolation Forest provides an unsupervised outlier baseline, while the LSTM adds temporal prediction of normal traffic behavior. Reported detections should be interpreted with the simulation configuration, feature definitions, threshold policy, and random seed used to generate them.
 
-Key plots and reports are generated by the visualization scripts and saved in the root directory.
+## Reproducibility
 
-## Future Work
+For each run, record the SUMO and Python versions, simulation configuration, route-generation arguments, random seeds, input-data paths, model hyperparameters, anomaly-injection settings, and output CSV/plot locations. This metadata is required to compare detection results across runs.
 
-* **Automated Response System:** Extend the system to automatically react to detected anomalies within SUMO (e.g., rerouting traffic).
-* **Data Fusion:** Improve model accuracy by training on multiple data sources simultaneously (e.g., speed, vehicle count, and network latency).
-* **Full Network Simulation:** Integrate the SUMO simulation with a dedicated network simulator like NS-3 for a more holistic analysis.
+## Future extensions
+
+Potential extensions include closed-loop traffic response, multi-feature data fusion, calibrated detection thresholds, and integration with a dedicated network simulator such as NS-3.
